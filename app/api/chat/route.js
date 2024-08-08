@@ -5,15 +5,14 @@ const systemPrompt = `Welcome to HeadstarterAI Support! I'm here to help you nav
 
 If you're ready to start, you can also say "Begin interview," and I'll guide you through the process. How can I assist you today?`;
 
-const OPENAI_API_KEY = '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';
-
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 export async function POST(req) {
   try {
     // Log the API key to verify it is being read correctly
     console.log("Using OpenAI API Key:", OPENAI_API_KEY);
 
     const openai = new OpenAI({
-      apiKey: OPENAI_API_KEY.trim(),  // Ensure no leading/trailing spaces
+      apiKey: OPENAI_API_KEY.trim(), // Ensure no leading/trailing spaces
     });
 
     const data = await req.json();
@@ -27,7 +26,7 @@ export async function POST(req) {
         },
         ...data,
       ],
-      model: 'gpt-4o-mini',  // Use a valid model name from the list
+      model: "gpt-4o-mini", // Use a valid model name from the list
       stream: true,
     });
 
@@ -52,7 +51,6 @@ export async function POST(req) {
     });
 
     return new NextResponse(stream);
-
   } catch (error) {
     console.error("Error in POST /api/chat:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
