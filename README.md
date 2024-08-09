@@ -1,6 +1,4 @@
-<img src="utils/theheadstarter_logo.jpeg" alt="AI Customer Support Logo" width="120" height="120">
-
-# AI Customer Support
+# AI Customer Support Chatbot
 
 ## Overview
 **HeadstarterAI Customer Support** is an AI-powered chatbot designed to enhance customer support experiences. Built using **Next.js** and the **OpenAI API**, this bot is capable of providing technical support, guiding users through interview setups, and offering preparation tips. 
