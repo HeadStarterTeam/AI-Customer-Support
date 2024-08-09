@@ -10,25 +10,48 @@ import {
 import LogoutIcon from "@mui/icons-material/Logout";
 import SendIcon from "@mui/icons-material/Send";
 import { useState, useEffect } from "react";
-import { logout, auth } from "../../firebase";
+import { logout, auth, db } from "../../firebase";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import {
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  query,
+  orderBy,
+  serverTimestamp,
+} from "firebase/firestore";
 
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "Hello, how can I help you today?",
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        setLoading(false); // User is authenticated
+        setLoading(false);
+        const chatRef = doc(db, "chats", user.uid);
+        await setDoc(chatRef, { initialized: true }, { merge: true });
+
+        const messagesRef = collection(chatRef, "messages");
+
+        const q = query(messagesRef, orderBy("timestamp", "asc"));
+        const querySnapshot = await getDocs(q);
+        const retrievedMessages = querySnapshot.docs.map((doc) => doc.data());
+        setMessages(retrievedMessages);
+        setMessages((messages) => [
+          ...messages,
+          {
+            role: "assistant",
+            content: "Hello, how can I help you today?",
+            timestamp: serverTimestamp(),
+          },
+        ]);
       } else {
         router.push("/");
       }
@@ -36,6 +59,81 @@ export default function Home() {
 
     return () => unsubscribe();
   }, [router]);
+
+  const user_logout = async () => {
+    await logout();
+    router.push("/");
+  };
+
+  const sendMessage = async () => {
+    const newMessage = {
+      role: "user",
+      content: message,
+      timestamp: serverTimestamp(),
+    };
+    const assistantMessage = { role: "assistant", content: "" };
+
+    setMessages((messages) => [...messages, newMessage, assistantMessage]);
+    const user = auth.currentUser;
+    const messagesRef = collection(db, "chats", user.uid, "messages");
+
+    try {
+      if (!user) {
+        throw new Error("User is not logged in");
+      }
+      await addDoc(messagesRef, newMessage);
+      let result = "";
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([...messages, newMessage]),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      const processText = async ({ done, value }) => {
+        if (done) {
+          return result;
+        }
+        const text = decoder.decode(value || new Uint8Array(), {
+          stream: true,
+        });
+        result += text;
+
+        setMessages((messages) => {
+          const lastMessage = messages[messages.length - 1];
+          const otherMessages = messages.slice(0, messages.length - 1);
+          return [
+            ...otherMessages,
+            {
+              ...lastMessage,
+              content: lastMessage.content + text,
+            },
+          ];
+        });
+
+        return reader.read().then(processText);
+      };
+
+      await reader.read().then(processText);
+      const aiMessage = {
+        role: "assistant",
+        content: result,
+        timestamp: serverTimestamp(),
+      };
+      await addDoc(messagesRef, aiMessage);
+    } catch (error) {
+      console.error("Error during sendMessage:", error);
+    }
+    setMessage("");
+  };
 
   if (loading) {
     return (
@@ -49,64 +147,6 @@ export default function Home() {
       </Box>
     );
   }
-
-  const user_logout = async () => {
-    await logout();
-    router.push("/");
-  };
-
-  const sendMessage = async () => {
-    setMessages((messages) => [
-      ...messages,
-      { role: "user", content: message },
-      { role: "assistant", content: "" },
-    ]);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([...messages, { role: "user", content: message }]),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      let result = "";
-      const processText = async ({ done, value }) => {
-        if (done) {
-          return result;
-        }
-        const text = decoder.decode(value || new Uint8Array(), {
-          stream: true,
-        });
-        setMessages((messages) => {
-          const lastMessage = messages[messages.length - 1];
-          const otherMessages = messages.slice(0, messages.length - 1);
-          return [
-            ...otherMessages,
-            {
-              ...lastMessage,
-              content: lastMessage.content + text,
-            },
-          ];
-        });
-        return reader.read().then(processText);
-      };
-
-      await reader.read().then(processText);
-    } catch (error) {
-      console.error("Error during sendMessage:", error);
-    }
-
-    setMessage("");
-  };
 
   return (
     <Box
