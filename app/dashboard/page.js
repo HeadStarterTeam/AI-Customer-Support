@@ -1,9 +1,18 @@
 "use client";
-import { Box, Stack, TextField, Button } from "@mui/material";
-import { use, useState } from "react";
+import {
+  Box,
+  Stack,
+  TextField,
+  Paper,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import SendIcon from "@mui/icons-material/Send";
+import { useState, useEffect } from "react";
 import { logout, auth } from "../../firebase";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const router = useRouter();
@@ -29,7 +38,16 @@ export default function Home() {
   }, [router]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
+        <Typography variant="h6">Loading...</Typography>
+      </Box>
+    );
   }
 
   const user_logout = async () => {
@@ -98,35 +116,53 @@ export default function Home() {
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
+      sx={{
+        background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+      }}
     >
-      <Button
-        type="submit"
-        fullWidth
-        variant="outlined"
+      <IconButton
         onClick={user_logout}
         sx={{
-          mt: 3,
-          mb: 2,
-          width: "300px",
-          height: "40px",
+          position: "absolute",
+          top: 20,
+          right: 20,
+          color: "blue",
         }}
       >
-        Sign Out
-      </Button>
-      <Stack
-        direction="column"
-        width="600px"
-        height="700px"
-        border="1px solid black"
-        p={2}
-        spacing={3}
+        <LogoutIcon />
+      </IconButton>
+      <Paper
+        elevation={5}
+        sx={{
+          width: "500px",
+          height: "600px",
+          display: "flex",
+          flexDirection: "column",
+          p: 3,
+          borderRadius: "20px",
+          background: "rgba(255, 255, 255, 0.9)",
+          backdropFilter: "blur(10px)",
+        }}
       >
         <Stack
           direction="column"
           spacing={2}
           flexGrow={1}
-          overflow={"auto"}
-          maxHeight="100%"
+          overflow="auto"
+          sx={{
+            maxHeight: "100%",
+            padding: "10px",
+            "&::-webkit-scrollbar": {
+              width: "5px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: "#888",
+              borderRadius: "10px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              backgroundColor: "#555",
+            },
+          }}
         >
           {messages.map((message, index) => (
             <Box
@@ -137,32 +173,62 @@ export default function Home() {
               }
             >
               <Box
-                bgcolor={
-                  message.role === "assistant"
-                    ? "primary.main"
-                    : "secondary.main"
-                }
-                color="white"
-                borderRadius={16}
-                p={3}
+                sx={{
+                  bgcolor:
+                    message.role === "assistant"
+                      ? "#E0E0E0"
+                      : "linear-gradient(135deg, #00F260 10%, #0575E6 100%)",
+                  color: message.role === "assistant" ? "#000" : "black",
+                  borderRadius: "20px",
+                  p: 2,
+                  maxWidth: "75%",
+                  wordBreak: "break-word",
+                  overflowWrap: "break-word",
+                  boxShadow:
+                    message.role === "assistant"
+                      ? "0px 4px 12px rgba(0, 0, 0, 0.1)"
+                      : "0px 4px 12px rgba(0, 0, 0, 0.2)",
+                }}
               >
-                {message.content}
+                {message.role === "assistant" ? (
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                ) : (
+                  message.content
+                )}
               </Box>
             </Box>
           ))}
         </Stack>
-        <Stack direction="row" spacing={2}>
+        <Stack
+          direction="row"
+          spacing={2}
+          mt={2}
+          sx={{
+            alignItems: "center",
+          }}
+        >
           <TextField
-            label="message"
+            label="Type a message..."
+            variant="outlined"
             fullWidth
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            sx={{
+              backgroundColor: "white",
+              borderRadius: "10px",
+            }}
           />
-          <Button variant="contained" onClick={sendMessage}>
-            Send
-          </Button>
+          <IconButton
+            color="primary"
+            onClick={sendMessage}
+            sx={{
+              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <SendIcon />
+          </IconButton>
         </Stack>
-      </Stack>
+      </Paper>
     </Box>
   );
 }
