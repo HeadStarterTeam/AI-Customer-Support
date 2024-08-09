@@ -65,6 +65,13 @@ export default function Home() {
     router.push("/");
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
   const sendMessage = async () => {
     const newMessage = {
       role: "user",
@@ -72,7 +79,7 @@ export default function Home() {
       timestamp: serverTimestamp(),
     };
     const assistantMessage = { role: "assistant", content: "" };
-
+    setMessage("");
     setMessages((messages) => [...messages, newMessage, assistantMessage]);
     const user = auth.currentUser;
     const messagesRef = collection(db, "chats", user.uid, "messages");
@@ -132,7 +139,6 @@ export default function Home() {
     } catch (error) {
       console.error("Error during sendMessage:", error);
     }
-    setMessage("");
   };
 
   if (loading) {
@@ -253,6 +259,7 @@ export default function Home() {
             fullWidth
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
             sx={{
               backgroundColor: "white",
               borderRadius: "10px",
