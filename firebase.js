@@ -42,7 +42,6 @@ export const logout = () => {
 };
 
 export const signUpWithEmail = (email, password) => {
-  console.log("email", email);
   return createUserWithEmailAndPassword(auth, email, password);
 };
 

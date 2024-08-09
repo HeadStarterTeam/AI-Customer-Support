@@ -17,6 +17,7 @@ import ReactMarkdown from "react-markdown";
 import { CircularProgress } from "@mui/material";
 import Tooltip from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
+import Avatar from "@mui/material/Avatar";
 
 import {
   collection,
@@ -267,7 +268,15 @@ export default function Home() {
               justifyContent={
                 message.role === "assistant" ? "flex-start" : "flex-end"
               }
+              alignItems="flex-start"
             >
+              {message.role === "assistant" && (
+                <Avatar
+                  alt="AI"
+                  src="./images/AI.avif"
+                  sx={{ width: 40, height: 40, marginRight: 2 }}
+                />
+              )}
               <Box
                 sx={{
                   bgcolor:

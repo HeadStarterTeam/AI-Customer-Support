@@ -8,16 +8,11 @@ If you're ready to start, you can also say "Begin interview," and I'll guide you
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 export async function POST(req) {
   try {
-    // Log the API key to verify it is being read correctly
-    console.log("Using OpenAI API Key:", OPENAI_API_KEY);
-
     const openai = new OpenAI({
-      apiKey: OPENAI_API_KEY.trim(), // Ensure no leading/trailing spaces
+      apiKey: OPENAI_API_KEY.trim(),
     });
 
     const data = await req.json();
-    console.log("Received data:", data);
-
     const completion = await openai.chat.completions.create({
       messages: [
         {
