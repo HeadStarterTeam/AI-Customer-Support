@@ -9,10 +9,12 @@ import {
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SendIcon from "@mui/icons-material/Send";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { logout, auth, db } from "../../firebase";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import { CircularProgress } from "@mui/material";
+
 import {
   collection,
   doc,
@@ -30,6 +32,16 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(scrollToBottom, [messages]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -78,6 +90,7 @@ export default function Home() {
       content: message,
       timestamp: serverTimestamp(),
     };
+
     const assistantMessage = { role: "assistant", content: "" };
     setMessage("");
     setMessages((messages) => [...messages, newMessage, assistantMessage]);
@@ -149,7 +162,7 @@ export default function Home() {
         alignItems="center"
         height="100vh"
       >
-        <Typography variant="h6">Loading...</Typography>
+        <CircularProgress size={50} thickness={4} color="primary" />
       </Box>
     );
   }
@@ -244,6 +257,7 @@ export default function Home() {
               </Box>
             </Box>
           ))}
+          <div ref={messagesEndRef} />
         </Stack>
         <Stack
           direction="row"
