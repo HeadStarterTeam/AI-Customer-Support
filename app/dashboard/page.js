@@ -8,12 +8,15 @@ import {
   IconButton,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
+import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import { useState, useEffect, useRef } from "react";
 import { logout, auth, db } from "../../firebase";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { CircularProgress } from "@mui/material";
+import Tooltip from "@mui/material/Tooltip";
+import { styled } from "@mui/material/styles";
 
 import {
   collection,
@@ -25,6 +28,7 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  deleteDoc,
 } from "firebase/firestore";
 
 export default function Home() {
@@ -75,6 +79,21 @@ export default function Home() {
   const user_logout = async () => {
     await logout();
     router.push("/");
+  };
+
+  const deleteChatHistory = async (userId) => {
+    const messageRef = collection(db, "chats", userId, "messages");
+    const querySnapshot = await getDocs(messageRef);
+    querySnapshot.forEach(async (docSnapshot) => {
+      await deleteDoc(doc(messageRef, docSnapshot.id));
+    });
+    setMessages(() => [
+      {
+        role: "assistant",
+        content: "Hello, how can I help you today?",
+        timestamp: serverTimestamp(),
+      },
+    ]);
   };
 
   const handleKeyDown = (e) => {
@@ -179,17 +198,35 @@ export default function Home() {
         background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
       }}
     >
-      <IconButton
-        onClick={user_logout}
-        sx={{
-          position: "absolute",
-          top: 20,
-          right: 20,
-          color: "blue",
-        }}
-      >
-        <LogoutIcon />
-      </IconButton>
+      <Tooltip title="Logout">
+        <IconButton
+          onClick={user_logout}
+          sx={{
+            position: "absolute",
+            top: 20,
+            right: 20,
+            color: "blue",
+          }}
+        >
+          <LogoutIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="Delete Chat History">
+        <IconButton
+          onClick={() => deleteChatHistory(auth.currentUser.uid)}
+          sx={{
+            position: "absolute",
+            top: 20,
+            right: 80,
+            color: "red",
+          }}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
+      <Typography variant="h4" mb={2}>
+        Chat with AI 🤖
+      </Typography>
       <Paper
         elevation={5}
         sx={{
