@@ -28,7 +28,7 @@ export default function Home() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        setLoading(false); // User is authenticated
+        setLoading(false); 
       } else {
         router.push("/");
       }
@@ -56,6 +56,8 @@ export default function Home() {
   };
 
   const sendMessage = async () => {
+    if (!message.trim()) return; 
+
     setMessages((messages) => [
       ...messages,
       { role: "user", content: message },
@@ -108,6 +110,13 @@ export default function Home() {
     setMessage("");
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); 
+      sendMessage();
+    }
+  };
+
   return (
     <Box
       width="100vw"
@@ -117,7 +126,7 @@ export default function Home() {
       justifyContent="center"
       alignItems="center"
       sx={{
-        background: "linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)",
+        background: "linear-gradient(135deg, #939dad 0%, #d9e2ec 100%)",
       }}
     >
       <IconButton
@@ -213,6 +222,7 @@ export default function Home() {
             fullWidth
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown} // Handle Enter key press
             sx={{
               backgroundColor: "white",
               borderRadius: "10px",
