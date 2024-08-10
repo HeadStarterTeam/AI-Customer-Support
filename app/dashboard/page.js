@@ -18,6 +18,7 @@ import { CircularProgress } from "@mui/material";
 import Tooltip from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Avatar from "@mui/material/Avatar";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import {
   collection,
@@ -37,6 +38,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [language, setLanguage] = useState("en");
 
   const messagesEndRef = useRef(null);
 
@@ -47,6 +49,9 @@ export default function Home() {
   };
 
   useEffect(scrollToBottom, [messages]);
+  const handlechange = (e) => {
+    setLanguage(e.target.value);
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -123,12 +128,16 @@ export default function Home() {
       }
       await addDoc(messagesRef, newMessage);
       let result = "";
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify([...messages, newMessage]),
+        body: JSON.stringify({
+          messages: [...messages, newMessage],
+          language: language,
+        }),
       });
 
       if (!response.ok) {
@@ -225,9 +234,31 @@ export default function Home() {
           <DeleteIcon />
         </IconButton>
       </Tooltip>
-      <Typography variant="h4" mb={2}>
-        Chat with AI 🤖
-      </Typography>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        gap={4}
+        mb={2}
+      >
+        <Typography variant="h4">Chat with AI 🤖</Typography>
+        <FormControl sx={{ minWidth: 120 }}>
+          <InputLabel id="language-select-label">Language</InputLabel>
+          <Select
+            labelId="language-select-label"
+            id="language-select"
+            value={language}
+            onChange={handlechange}
+            label="Language"
+          >
+            <MenuItem value="en">English</MenuItem>
+            <MenuItem value="es">Español</MenuItem>
+            <MenuItem value="ja">Japanese</MenuItem>
+            <MenuItem value="fr">French</MenuItem>
+            <MenuItem value="Ger">German</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
       <Paper
         elevation={5}
         sx={{

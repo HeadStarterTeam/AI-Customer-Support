@@ -1,18 +1,27 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const systemPrompt = `Welcome to HeadstarterAI Support! I'm here to help you navigate through your AI-powered interview process. Whether you need assistance with setting up your interview, technical support, or have questions about how to best prepare, just type your query below.
-
-If you're ready to start, you can also say "Begin interview," and I'll guide you through the process. How can I assist you today?`;
-
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 export async function POST(req) {
   try {
     const openai = new OpenAI({
-      apiKey: OPENAI_API_KEY.trim(),
+      apiKey: process.env.OPENAI_API_KEY.trim(),
     });
 
-    const data = await req.json();
+    const value = await req.json();
+    const data = value.messages.map((message) => ({
+      role: "user",
+      content: message.content,
+    }));
+    const language = value.language ? value.language : "English";
+
+    const systemPrompt = `
+      Welcome to HeadstarterAI Support! I'm here to help you navigate through your AI-powered interview process. 
+      Whether you need assistance with setting up your interview, technical support, or have questions about how to best prepare, just type your query below.
+
+      If you're ready to start, you can also say "Begin interview," and I'll guide you through the process. 
+      Respond in ${language}:
+    `;
+    console.log("language", language);
     const completion = await openai.chat.completions.create({
       messages: [
         {
@@ -21,10 +30,11 @@ export async function POST(req) {
         },
         ...data,
       ],
-      model: "gpt-4o-mini", // Use a valid model name from the list
+      model: "gpt-4o-mini",
       stream: true,
+      max_tokens: 100,
+      temperature: 0.7,
     });
-
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
@@ -44,7 +54,6 @@ export async function POST(req) {
         }
       },
     });
-
     return new NextResponse(stream);
   } catch (error) {
     console.error("Error in POST /api/chat:", error);
