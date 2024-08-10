@@ -10,7 +10,7 @@ import {
 import LogoutIcon from "@mui/icons-material/Logout";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { logout, auth, db } from "../../firebase";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -38,6 +38,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [Dbmessages, setDbmessages] = useState([]);
   const [language, setLanguage] = useState("en");
 
   const messagesEndRef = useRef(null);
@@ -52,6 +53,79 @@ export default function Home() {
   const handlechange = (e) => {
     setLanguage(e.target.value);
   };
+  function AIreply() {
+    if (language == "en") {
+      return "Hello, how can I help you today?";
+    } else if (language == "es") {
+      return "Hola, ¿cómo puedo ayudarte hoy?";
+    } else if (language == "ja") {
+      return "こんにちは、今日はどうお手伝いしましょうか？";
+    } else if (language == "fr") {
+      return "Bonjour, comment puis-je vous aider aujourd'hui ?";
+    } else if (language == "Ger") {
+      return "Hallo, wie kann ich Ihnen heute helfen?";
+    } else if (language == "it") {
+      return "Ciao, come posso aiutarti oggi?";
+    }
+  }
+
+  useEffect(() => {
+    if (language == "en") {
+      setMessages(() => [
+        ...Dbmessages,
+        {
+          role: "assistant",
+          content: "Hello, how can I help you today?",
+          timestamp: serverTimestamp(),
+        },
+      ]);
+    } else if (language == "es") {
+      setMessages(() => [
+        ...Dbmessages,
+        {
+          role: "assistant",
+          content: "Hola, ¿cómo puedo ayudarte hoy?",
+          timestamp: serverTimestamp(),
+        },
+      ]);
+    } else if (language == "ja") {
+      setMessages(() => [
+        ...Dbmessages,
+        {
+          role: "assistant",
+          content: "こんにちは、今日はどうお手伝いしましょうか？",
+          timestamp: serverTimestamp(),
+        },
+      ]);
+    } else if (language == "fr") {
+      setMessages(() => [
+        ...Dbmessages,
+        {
+          role: "assistant",
+          content: "Bonjour, comment puis-je vous aider aujourd'hui ?",
+          timestamp: serverTimestamp(),
+        },
+      ]);
+    } else if (language == "Ger") {
+      setMessages(() => [
+        ...Dbmessages,
+        {
+          role: "assistant",
+          content: "Hallo, wie kann ich Ihnen heute helfen?",
+          timestamp: serverTimestamp(),
+        },
+      ]);
+    } else if (language == "it") {
+      setMessages(() => [
+        ...Dbmessages,
+        {
+          role: "assistant",
+          content: "Ciao, come posso aiutarti oggi?",
+          timestamp: serverTimestamp(),
+        },
+      ]);
+    }
+  }, [language]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -66,11 +140,12 @@ export default function Home() {
         const querySnapshot = await getDocs(q);
         const retrievedMessages = querySnapshot.docs.map((doc) => doc.data());
         setMessages(retrievedMessages);
+        setDbmessages(retrievedMessages);
         setMessages((messages) => [
           ...messages,
           {
             role: "assistant",
-            content: "Hello, how can I help you today?",
+            content: AIreply(),
             timestamp: serverTimestamp(),
           },
         ]);
@@ -80,7 +155,7 @@ export default function Home() {
     });
 
     return () => unsubscribe();
-  }, [router]);
+  }, [router, language]);
 
   const user_logout = async () => {
     await logout();
@@ -96,7 +171,7 @@ export default function Home() {
     setMessages(() => [
       {
         role: "assistant",
-        content: "Hello, how can I help you today?",
+        content: AIreply(),
         timestamp: serverTimestamp(),
       },
     ]);
