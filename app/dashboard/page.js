@@ -316,7 +316,7 @@ export default function Home() {
         gap={4}
         mb={2}
       >
-        <Typography variant="h4">Chat with AI 🤖</Typography>
+        <Typography variant="h4">Learn ML with AI 🤖</Typography>
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel id="language-select-label">Language</InputLabel>
           <Select

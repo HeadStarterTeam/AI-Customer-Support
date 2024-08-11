@@ -40,7 +40,6 @@ export async function POST(req) {
     const retrievedTexts = queryResults.matches.map(
       (match) => match.metadata.text
     );
-    console.log("Retrieved texts:", retrievedTexts);
 
     const context = retrievedTexts.join("\n");
 
@@ -48,7 +47,6 @@ export async function POST(req) {
       The following is the relevant information to answer the user's query. Please base your response strictly on this information:
 
       ${context}
-      if the input is not related to the context provided, please respond with "I can only answer question about Machine Learning".
       Respond in ${language}:
     `;
 
