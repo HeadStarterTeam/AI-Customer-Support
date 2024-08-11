@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { Pinecone } from "@pinecone-database/pinecone";
 
 export async function POST(req) {
   try {
@@ -7,21 +8,50 @@ export async function POST(req) {
       apiKey: process.env.OPENAI_API_KEY.trim(),
     });
 
+    const pc = new Pinecone({
+      apiKey: process.env.PINECONE_API_KEY.trim(),
+    });
+
+    const index = pc.index("ml");
+
     const value = await req.json();
     const data = value.messages.map((message) => ({
       role: "user",
       content: message.content,
     }));
+
     const language = value.language ? value.language : "English";
 
-    const systemPrompt = `
-      Welcome to HeadstarterAI Support! I'm here to help you navigate through your AI-powered interview process. 
-      Whether you need assistance with setting up your interview, technical support, or have questions about how to best prepare, just type your query below.
+    // Create embeddings for the user messages
+    const embeddingResponse = await openai.embeddings.create({
+      model: "text-embedding-ada-002",
+      input: data.map((d) => d.content).join(" "),
+    });
 
-      If you're ready to start, you can also say "Begin interview," and I'll guide you through the process. 
+    const queryEmbedding = embeddingResponse.data[0].embedding;
+
+    const queryResults = await index.query({
+      topK: 3,
+      vector: queryEmbedding,
+      includeValues: true,
+      includeMetadata: true,
+    });
+
+    const retrievedTexts = queryResults.matches.map(
+      (match) => match.metadata.text
+    );
+    console.log("Retrieved texts:", retrievedTexts);
+
+    const context = retrievedTexts.join("\n");
+
+    const systemPrompt = `
+      The following is the relevant information to answer the user's query. Please base your response strictly on this information:
+
+      ${context}
+      if the input is not related to the context provided, please respond with "I can only answer question about Machine Learning".
       Respond in ${language}:
     `;
-    console.log("language", language);
+
     const completion = await openai.chat.completions.create({
       messages: [
         {
@@ -32,9 +62,10 @@ export async function POST(req) {
       ],
       model: "gpt-4o-mini",
       stream: true,
-      max_tokens: 100,
+      max_tokens: 150,
       temperature: 0.7,
     });
+
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();

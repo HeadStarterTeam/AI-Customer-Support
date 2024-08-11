@@ -210,7 +210,7 @@ export default function Home() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...messages, newMessage],
+          messages: [newMessage],
           language: language,
         }),
       });
