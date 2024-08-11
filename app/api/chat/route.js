@@ -47,7 +47,7 @@ export async function POST(req) {
       The following is the relevant information to answer the user's query. Please base your response strictly on this information:
 
       ${context}
-      if the input is not related to the context provided, please respond with "I can only answer question about Machine Learning".
+      if the input is not related to the Machine Learning, please respond with "I can only answer question about Machine Learning".
       Respond in ${language}:
     `;
 
