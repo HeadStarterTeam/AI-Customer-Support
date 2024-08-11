@@ -391,7 +391,7 @@ export default function Home() {
                       : "linear-gradient(135deg, #00F260 10%, #0575E6 100%)",
                   color: message.role === "assistant" ? "#000" : "black",
                   borderRadius: "20px",
-                  p: 2,
+                  p: 3,
                   maxWidth: "75%",
                   wordBreak: "break-word",
                   overflowWrap: "break-word",
