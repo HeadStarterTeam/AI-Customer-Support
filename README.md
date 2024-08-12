@@ -4,6 +4,7 @@
 
 **HeadstarterAI Customer Support** is an AI-powered chatbot designed to enhance customer support experiences and support multi-language interactions. Using a RAG system, the chatbot delivers context-aware responses tailored to user needs.
 
+Watch the app demo: ![NeuraLearn AI](https://www.youtube.com/watch?v=wkXeHVJ25tc)
 ## Tech Stack
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
